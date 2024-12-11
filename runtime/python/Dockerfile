@@ -1,6 +1,6 @@
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TARGET_COSY_MODEL_NAME=CosyVoice-300M-Instruct
+ENV TARGET_COSY_MODEL=CosyVoice-300M-Instruct
 
 WORKDIR /opt/CosyVoice
 
