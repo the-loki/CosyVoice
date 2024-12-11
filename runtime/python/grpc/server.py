@@ -33,7 +33,9 @@ logging.basicConfig(level=logging.DEBUG,
 
 class CosyVoiceServiceImpl(cosyvoice_pb2_grpc.CosyVoiceServicer):
     def __init__(self, args):
-        self.cosyvoice = CosyVoice(args.model_dir)
+        model_name = os.environ.get("TARGET_COSY_MODEL")
+        model_path = "iic/{}".format(model_name)
+        self.cosyvoice = CosyVoice(model_path)
         logging.info('grpc service initialized')
 
     def Inference(self, request, context):
@@ -82,9 +84,5 @@ if __name__ == '__main__':
     parser.add_argument('--max_conc',
                         type=int,
                         default=4)
-    parser.add_argument('--model_dir',
-                        type=str,
-                        default='iic/CosyVoice-300M',
-                        help='local path or modelscope repo id')
     args = parser.parse_args()
     main()

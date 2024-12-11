@@ -28,7 +28,8 @@ class CosyVoice:
         instruct = True if '-Instruct' in model_dir else False
         self.model_dir = model_dir
         if not os.path.exists(model_dir):
-            model_dir = snapshot_download(model_dir)
+            logging.info("Downloading model from modelscope...")
+            model_dir = snapshot_download(model_dir, local_files_only=True)
         with open('{}/cosyvoice.yaml'.format(model_dir), 'r') as f:
             configs = load_hyperpyyaml(f)
         self.frontend = CosyVoiceFrontEnd(configs['get_tokenizer'],
