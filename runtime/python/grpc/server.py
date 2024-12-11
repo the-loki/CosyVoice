@@ -34,7 +34,7 @@ logging.basicConfig(level=logging.DEBUG,
 class CosyVoiceServiceImpl(cosyvoice_pb2_grpc.CosyVoiceServicer):
     def __init__(self, args):
         model_name = os.environ.get("TARGET_COSY_MODEL")
-        model_path = "pretrained_models/{}".format(model_name)
+        model_path = "iic/{}".format(model_name)
         self.cosyvoice = CosyVoice(model_path)
         logging.info('grpc service initialized')
 
