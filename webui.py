@@ -60,7 +60,7 @@ def change_instruction(mode_checkbox_group):
 
 
 def generate_audio(tts_text, mode_checkbox_group, sft_dropdown, prompt_text, prompt_wav_upload, prompt_wav_record, instruct_text,
-                   seed, stream, speed):
+                   seed, stream, speed, model_path):
     if prompt_wav_upload is not None:
         prompt_wav = prompt_wav_upload
     elif prompt_wav_record is not None:
@@ -70,7 +70,7 @@ def generate_audio(tts_text, mode_checkbox_group, sft_dropdown, prompt_text, pro
     # if instruct mode, please make sure that model is iic/CosyVoice-300M-Instruct and not cross_lingual mode
     if mode_checkbox_group in ['自然语言控制']:
         if cosyvoice.frontend.instruct is False:
-            gr.Warning('您正在使用自然语言控制模式, {}模型不支持此模式, 请使用iic/CosyVoice-300M-Instruct模型'.format(args.model_dir))
+            gr.Warning('您正在使用自然语言控制模式, {}模型不支持此模式, 请使用iic/CosyVoice-300M-Instruct模型'.format(model_path))
             yield (cosyvoice.sample_rate, default_data)
         if instruct_text == '':
             gr.Warning('您正在使用自然语言控制模式, 请输入instruct文本')
@@ -80,7 +80,7 @@ def generate_audio(tts_text, mode_checkbox_group, sft_dropdown, prompt_text, pro
     # if cross_lingual mode, please make sure that model is iic/CosyVoice-300M and tts_text prompt_text are different language
     if mode_checkbox_group in ['跨语种复刻']:
         if cosyvoice.frontend.instruct is True:
-            gr.Warning('您正在使用跨语种复刻模式, {}模型不支持此模式, 请使用iic/CosyVoice-300M模型'.format(args.model_dir))
+            gr.Warning('您正在使用跨语种复刻模式, {}模型不支持此模式, 请使用iic/CosyVoice-300M模型'.format(model_path))
             yield (cosyvoice.sample_rate, default_data)
         if instruct_text != '':
             gr.Info('您正在使用跨语种复刻模式, instruct文本会被忽略')
@@ -132,7 +132,7 @@ def generate_audio(tts_text, mode_checkbox_group, sft_dropdown, prompt_text, pro
             yield (cosyvoice.sample_rate, i['tts_speech'].numpy().flatten())
 
 
-def main():
+def main(model_path):
     with gr.Blocks() as demo:
         gr.Markdown("### 代码库 [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) \
                     预训练模型 [CosyVoice-300M](https://www.modelscope.cn/models/iic/CosyVoice-300M) \
@@ -164,7 +164,7 @@ def main():
         seed_button.click(generate_seed, inputs=[], outputs=seed)
         generate_button.click(generate_audio,
                               inputs=[tts_text, mode_checkbox_group, sft_dropdown, prompt_text, prompt_wav_upload, prompt_wav_record, instruct_text,
-                                      seed, stream, speed],
+                                      seed, stream, speed, model_path],
                               outputs=[audio_output])
         mode_checkbox_group.change(fn=change_instruction, inputs=[mode_checkbox_group], outputs=[instruction_text])
     demo.queue(max_size=4, default_concurrency_limit=2)
@@ -176,13 +176,12 @@ if __name__ == '__main__':
     parser.add_argument('--port',
                         type=int,
                         default=8000)
-    parser.add_argument('--model_dir',
-                        type=str,
-                        default='pretrained_models/CosyVoice2-0.5B',
-                        help='local path or modelscope repo id')
+
+    model_name = os.environ.get("TARGET_COSY_MODEL")
+    model_path = "iic/{}".format(model_name)
     args = parser.parse_args()
-    cosyvoice = CosyVoice2(args.model_dir) if 'CosyVoice2' in args.model_dir else CosyVoice(args.model_dir)
+    cosyvoice = CosyVoice2(model_path) if 'CosyVoice2' in model_path else CosyVoice(model_path)
     sft_spk = cosyvoice.list_avaliable_spks()
     prompt_sr = 16000
     default_data = np.zeros(cosyvoice.sample_rate)
-    main()
+    main(model_path)
